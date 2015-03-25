@@ -2,7 +2,7 @@
 * @Author: Erick Lucena Palmeira Silva
 * @Date:   2015-03-23 19:33:54
 * @Last Modified by:   Erick Lucena Palmeira Silva
-* @Last Modified time: 2015-03-25 05:05:11
+* @Last Modified time: 2015-03-25 16:30:28
 */
 
 #include "data.h"
@@ -19,7 +19,9 @@ Memory* newMemory ()
 
     memory = malloc(sizeof(Memory));
 
-    memory->totalMemUsage = 0;
+    memory->stats.processes = 0;
+    memory->stats.holes = 0;
+    memory->stats.usage = 0;
     memory->timer = 0;
 
     if (memory != NULL)
@@ -43,6 +45,13 @@ Memory* newMemory ()
     }
 
     return memory;
+}
+
+void freeMemory(Memory *memory)
+{
+    freeCircularList(memory->ram);
+    freeQueue(memory->swap);
+    free(memory);
 }
 
 bool initMemory(Memory *memory)
@@ -128,6 +137,7 @@ void addMemoryUnit (Memory *memory, Node *node, Fit fit)
         if (freeSpace->info.size == 0)
         {
             removeNode(freeSpace);
+            free(freeSpace);
         }
     }
     printLoad(memory, pid);
@@ -250,7 +260,7 @@ void defrag(Memory *memory)
             {
                 iterator->info.size += iterator->next->info.size;
                 toFree = iterator->next;
-                removeNode(iterator->next);
+                removeNode(toFree);
                 free(toFree);
             }
             else if (iterator->next->info.type == mt_last)
@@ -260,7 +270,7 @@ void defrag(Memory *memory)
                     iterator->next->next->info.size += iterator->info.size;
                     toFree = iterator;
                     iterator = iterator->next;
-                    removeNode(iterator->previous);
+                    removeNode(toFree);
                     free(toFree);
                 }   
             }
@@ -332,20 +342,49 @@ void swapOut(Memory *memory)
 
 void run(Memory *memory, Fit fit)
 {
+    Stats stats;
+
+    switch (fit)
+    {
+        case f_first:
+            printf("#First fit\n\n");
+            break;
+
+        case f_best:
+            printf("#Best fit\n\n");
+            break;
+     
+        case f_next:
+            printf("#Next fit\n\n");
+            break;
+
+        case f_worst:
+            printf("#Worst fit\n\n");
+            break;
+    }
+
     while (!isEmpty(memory->swap))
     {
         //printMemory(memory);
         addMemoryUnit(memory, dequeue(memory->swap), fit);
+        stats = getStats(memory);
+
+        memory->stats.processes += stats.processes;
+        memory->stats.holes += stats.holes;
+        memory->stats.usage += (double) stats.usage/MEMORY_SIZE*100;;
     }
+
+    printf("Total loads = %d, average #processes = %.1lf, average #holes = %.1lf, cumulative %%mem = %.1lf\n\n", memory->timer, (double) memory->stats.processes/memory->timer, (double) memory->stats.holes/memory->timer, (double) memory->stats.usage/memory->timer);
 }
 
 void printLoad(Memory *memory, char pid)
 {
     Stats stats;
+    double totalMemUsage = 0;
 
     stats = getStats(memory);
-    memory->totalMemUsage+= (double) stats.usage/MEMORY_SIZE*100;
-    printf("%c loaded, #processes = %d, #holes = %d, %%memusage = %.1lf, cumulative %%mem = %.1lf\n", pid, stats.processes, stats.holes, (double) stats.usage/MEMORY_SIZE*100, (double)memory->totalMemUsage/memory->timer);
+    totalMemUsage = memory->stats.usage + (double) stats.usage/MEMORY_SIZE*100;
+    printf("%c loaded, #processes = %d, #holes = %d, %%memusage = %.1lf, cumulative %%mem = %.1lf\n", pid, stats.processes, stats.holes, (double) stats.usage/MEMORY_SIZE*100, (double) totalMemUsage/memory->timer);
 }
 
 Stats getStats(Memory *memory)

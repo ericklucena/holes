@@ -2,7 +2,7 @@
 * @Author: Erick Lucena Palmeira Silva
 * @Date:   2015-03-24 21:50:03
 * @Last Modified by:   Erick Lucena Palmeira Silva
-* @Last Modified time: 2015-03-25 00:55:37
+* @Last Modified time: 2015-03-25 15:10:09
 */
 
 #ifndef _ELUCENAP_CIRCULARLIST_H
@@ -15,6 +15,7 @@ typedef struct _ELUCENAP_CIRCULARLIST_H{
 } CircularList;
 
 CircularList* newCircularList();
+void freeCircularList(CircularList *list);
 void insertOnHead(CircularList *list, Node *node);
 void insertBefore (Node *node, Node *newNode);
 void insertAfter (Node *node, Node *newNode);

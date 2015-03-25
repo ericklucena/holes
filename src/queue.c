@@ -2,7 +2,7 @@
 * @Author: Erick Lucena Palmeira Silva
 * @Date:   2015-03-21 15:46:22
 * @Last Modified by:   Erick Lucena Palmeira Silva
-* @Last Modified time: 2015-03-25 04:08:05
+* @Last Modified time: 2015-03-25 15:06:00
 */
 
 #include "data.h"
@@ -24,6 +24,19 @@ Queue* newQueue()
     }
 
     return queue;
+}
+
+void freeQueue(Queue *queue)
+{
+    Node *toFree;
+
+    while (!isEmpty(queue))
+    {
+        toFree = dequeue(queue);
+        free(toFree);
+    }
+
+    free(queue);
 }
 
 void enqueue (Queue* queue, Node* node)
@@ -82,6 +95,6 @@ void printQueue(Queue *queue)
         iterator = iterator->next;
     }
     printf("\n");
-    
+
 }
 

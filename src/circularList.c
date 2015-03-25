@@ -2,7 +2,7 @@
 * @Author: Erick Lucena Palmeira Silva
 * @Date:   2015-03-24 21:49:50
 * @Last Modified by:   Erick Lucena Palmeira Silva
-* @Last Modified time: 2015-03-25 01:27:42
+* @Last Modified time: 2015-03-25 15:16:04
 */
 
 #include "data.h"
@@ -19,6 +19,26 @@ CircularList* newCircularList()
     }
 
     return list;
+}
+
+void freeCircularList(CircularList *list)
+{
+    Node *iterator;
+    Node *toFree;
+
+    if (list->head != NULL)
+    {
+        iterator = list->head->next;
+
+        while (iterator != list->head)
+        {
+            toFree = iterator;
+            iterator = iterator->next;
+            free(toFree);
+        }
+        free(iterator);
+        free(list);
+    }
 }
 
 void insertOnHead(CircularList *list, Node *node)
